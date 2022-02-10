@@ -1,0 +1,41 @@
+from polygon import RESTClient
+import pandas as pd
+
+Key = '0pN4PWvLm7ou46p5NjUDhoG_FhTtzPnN'
+# creat a list of dates and get data for each date
+lst_dates = ['2022-01-01','2022-02-01']
+
+#create an empty list
+li = []
+
+# loop through list of dates and get data for each date 
+for element in lst_dates:
+    with RESTClient(Key) as clint:
+        resp = clint.stocks_equities_grouped_daily(locale = "us", market = "stocks", date = element, unadjusted = False)
+        
+        if resp.resultsCount > 0:
+            # store json resolt in dataframe
+            df = pd.DataFrame(resp.results)
+
+            #add the dt dataframe into the li list 
+            li.append(df)
+
+# merge all the data frames you stored in the list togather into one data frame (df)
+df = pd.concat(li, axis=0, ignore_index=True)
+
+# rename the polygon standered columns to readable columns 
+df.rename( columns = {'T':'Ticker', 
+                      'o':'Open',
+                      'h':'High',
+                      'l':'Low',
+                      'c':'Close',
+                      'v':'Volume',
+                      'n':'Trades',
+                      't':'DataTimeUnix' }, inplace=True)
+# using the pandas shift function to place prior close on the same row
+df['Prior Close'] = df.groupby('Ticker')['Close'].shift(1)
+
+# calcuslate the gap % for that ticker for that day based on proior close
+df['Gap %'] = (df['Open'] - df['Prior Close']) / df['Prior Close']
+
+print(df['Gap %'],li)
