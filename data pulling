@@ -31,11 +31,12 @@ df.rename( columns = {'T':'Ticker',
                       'c':'Close',
                       'v':'Volume',
                       'n':'Trades',
+                      'z':'type',
                       't':'DataTimeUnix' }, inplace=True)
 # using the pandas shift function to place prior close on the same row
 df['Prior Close'] = df.groupby('Ticker')['Close'].shift(1)
 
 # calcuslate the gap % for that ticker for that day based on proior close
 df['Gap %'] = (df['Open'] - df['Prior Close']) / df['Prior Close']
-
+df.to_excel('output1.xlsx')
 print(df['Gap %'],li)
